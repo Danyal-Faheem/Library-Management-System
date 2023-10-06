@@ -84,6 +84,8 @@ target/
 *.pyc
 __pycache__/
 local_settings.py
-
 .env
 db.sqlite3
+
+# Added so as to not have a lot of changed files in PR
+**/migrations/*

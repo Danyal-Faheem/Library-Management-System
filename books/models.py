@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from datetime import timedelta
+from datetime import timedelta, date
 
 class Book(models.Model):
     name = models.CharField(max_length=1000)
@@ -26,12 +26,12 @@ class Issue(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     issue_date = models.DateField(null=True)
-    class Status(models.IntegerChoices):
-        REQUESTED = 1, "Requested"
-        ISSUED = 2, "Issued"
-        RETURNED = 3, "Returned"
-        REJECTED = 4, "Rejected"
-    status = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.REQUESTED)
+    class Status(models.TextChoices):
+        REQUESTED = "requested", "Requested"
+        ISSUED = "issued", "Issued"
+        RETURNED = "returned", "Returned"
+        REJECTED = "rejected", "Rejected"
+    status = models.CharField(choices=Status.choices, max_length=9, default=Status.REQUESTED)
     
     @property
     def return_date(self):

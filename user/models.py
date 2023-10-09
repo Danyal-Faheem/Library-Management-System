@@ -28,8 +28,7 @@ class UserProfile(models.Model):
         FEMALE = 2, "Female"
         OTHER = 3, "Others"
     gender = models.IntegerField(choices=Gender.choices, default=Gender.MALE)
-    phone_number = models.CharField(max_length=13, unique=True, validators=[
-                                    RegexValidator(r'^03\d{11}$')])
+    phone_number = models.CharField(max_length=13, unique=True) #, validators=[RegexValidator(r'^03\d{11}$')])
 
     def __str__(self):
         return self.user.username

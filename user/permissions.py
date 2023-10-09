@@ -21,6 +21,6 @@ class IsAdminOrOnlyCreateUser(BasePermission):
                 pass
         return True
 
-class IsAdmin(BasePermission):
+class IsAdminOrLibrarian(BasePermission):
     def has_permission(self, request, view):
-        return request.user and request.user.role == User.Role.ADMIN
+        return (request.user.role == User.Role.ADMIN or request.user.role == User.Role.LIBRARIAN)

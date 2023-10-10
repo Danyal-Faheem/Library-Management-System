@@ -7,6 +7,8 @@ from user.models import User
 from datetime import date
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 
 class BooksViewSet(ModelViewSet):
@@ -51,6 +53,22 @@ class RequestViewSet(ModelViewSet):
         if status is not None:
             if status == Request.Status.ISSUED:
                 serializer.save(issue_date=date.today())
+                
+    @action(detail=True, methods=['get'])
+    def reminder(self, request, pk=None):
+        request = self.get_object()
+        send_mail(
+            f'Book Return Reminder',
+            f'Dear {request.user.username},\n'
+            f'You are kindly requested to return the book: \n'
+            f'Name: {request.book.name}\n'
+            f'Author: {request.book.author}\n'
+            f'At the latest by {request.return_date}.\n'
+            f'After that, there will be overdue fees which will be calculated per day.\n',
+            settings.EMAIL_HOST_USER,
+            [request.user.email]
+        )
+        return Response({"status": "Email Reminder has been sent"})
 
 
 class TicketViewSet(ModelViewSet):

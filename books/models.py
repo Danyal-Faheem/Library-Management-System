@@ -43,3 +43,6 @@ class Ticket(models.Model):
         ACCEPTED = "accepted", "Accepted"
         REJECTED = "rejected", "Rejected"
     status = models.CharField(choices=Status.choices, max_length=9, default=Status.REQUESTED)
+    
+    def __str__(self):
+        return f'User: {self.user}\nName: {self.name}, Author: {self.author}'

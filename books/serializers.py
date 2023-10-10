@@ -1,6 +1,5 @@
-from books.models import Book, Request, Request
+from books.models import Book, Request, Ticket
 from rest_framework import serializers
-from user.serializers import UserSerializer
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
@@ -24,3 +23,16 @@ class RequestSerializer(serializers.ModelSerializer):
             'issue_date': {'read_only': True},
             'return_date': {'read_only': True},
         }
+
+class TicketSerializer(serializers.ModelSerializer):
+    
+    def validate(self, attrs):
+        if len(Book.objects.filter(name=attrs['name'], author=attrs['author'])) > 0 and attrs['status'] == Ticket.Status.REQUESTED:
+            raise serializers.ValidationError("This book already exists in the library")
+        elif len(Ticket.objects.filter(user=attrs['user'], name=attrs['name'], author=attrs['author'])) > 0 and attrs['status'] == Ticket.Status.REQUESTED:
+            raise serializers.ValidationError("You have already Requested this book!")
+        return super().validate(attrs)
+    
+    class Meta:
+        model = Ticket
+        fields = ['id', 'user', 'name', 'author', 'publisher', 'status']

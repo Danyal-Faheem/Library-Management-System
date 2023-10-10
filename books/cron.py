@@ -10,7 +10,10 @@ def return_reminder():
         for reminder in reminders:
             send_mail(
                 "Book Return Reminder",
-                f'The book with the details:\nName: {reminder.book.name}\nAuthor: {reminder.book.author}\nshould be returned by today!',
+                f'The book with the details:\n'
+                f'Name: {reminder.book.name}\n'
+                f'Author: {reminder.book.author}\n'
+                f'should be returned by today!',
                 settings.EMAIL_HOST_USER,
                 [reminder.user.email],
             )

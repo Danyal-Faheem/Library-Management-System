@@ -25,9 +25,9 @@ class UserProfileViewSet(ModelViewSet):
     
     
     def list(self, request, *args, **kwargs):
-        if request.user.role == User.Role.USER:
-            response = {'message': 'You are not authorized to use this function'}
-            return Response(response, status=status.HTTP_403_FORBIDDEN)
+        # if request.user.role == User.Role.USER:
+        #     response = {'message': 'You are not authorized to use this function'}
+        #     return Response(response, status=status.HTTP_403_FORBIDDEN)
         return super().list(request, *args, **kwargs)
     
     def create(self, request):

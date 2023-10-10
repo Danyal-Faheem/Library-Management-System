@@ -1,7 +1,6 @@
 from django.db import models
-from django.core.validators import RegexValidator
 from django.contrib.auth.models import User, AbstractUser
-from books.models import Issue
+from books.models import Request
 
 
 class User(AbstractUser):
@@ -17,7 +16,7 @@ class User(AbstractUser):
         choices=Role.choices, default=Role.USER)
 
     def issued_books(self):
-        return Issue.objects.filter(user=self, status=Issue.Status.ISSUED).count()
+        return Request.objects.filter(user=self, status=Request.Status.ISSUED).count()
 
 
 class UserProfile(models.Model):

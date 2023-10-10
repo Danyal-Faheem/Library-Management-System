@@ -4,6 +4,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 def return_reminder():
+    """"
+    Runs at 12am everyday to check whether any issued book is due on that day
+    Sends an email reminder to user if book is due on that day
+    """
     issued_books = Request.objects.filter(status=Request.Status.ISSUED)
     if issued_books is not None:
         reminders = [reminder for reminder in issued_books if reminder.return_date == date.today()]

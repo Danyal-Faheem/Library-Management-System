@@ -13,6 +13,11 @@ class Command(BaseCommand):
         parser.add_argument('--v', action="store_true", help="Print a verbose output")
     
     def handle(self, *args: Any, **options: Any) -> str | None:
+        """"
+        Open file and read csv data line by line and create books
+        Data should be in the format:
+        name,author,publisher,image,count
+        """
         file = options['csv_file']
         try:
             with open(file, 'rt') as f:

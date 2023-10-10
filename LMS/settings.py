@@ -133,14 +133,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Path to store our book cover images
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'static/media'
 
+# Our cronjobs
 CRONJOBS = [
+    # Reminder that checks at 12am Everyday
     ('0 0 * * *', 'books.cron.return_reminder')
 ]
 
-
+# Email setup
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

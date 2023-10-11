@@ -1,10 +1,11 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied
-from books.serializers import BookSerializer, RequestSerializer, TicketSerializer
+from books.serializers import (
+    BookSerializer, FullRequestSerializer, UserRequestSerializer, ReadRequestSerializer,  ReadTicketSerializer, FullTicketSerializer, UserTicketSerializer)
 from books.models import Book, Request, Ticket
 from books.permissions import IsLibrarianOrAdminOrReadOnly
 from user.models import User
-from datetime import date
+from datetime import date, timedelta
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.decorators import action
@@ -38,8 +39,16 @@ class RequestViewSet(ModelViewSet):
     Users can only request books and make no updates
     Librarian and Admins have all permissions
     """
-    serializer_class = RequestSerializer
     queryset = Request.objects.all()
+
+    def get_serializer_class(self):
+        """To verify user role and method and return respective realizer"""
+        role = self.request.user.role
+        if self.request.method == 'GET':
+            return ReadRequestSerializer
+        if role == User.Role.USER:
+            return UserRequestSerializer
+        return FullRequestSerializer
 
     def get_queryset(self):
         """If user role, then only show requests by the user"""
@@ -55,10 +64,10 @@ class RequestViewSet(ModelViewSet):
         # If role is user, only allow request queries
         if role == User.Role.USER:
             serializer.save(status=Request.Status.REQUESTED,
-                            user=self.request.user, issue_date=date.today())
+                            user=self.request.user)
         # Otherwise, allow all queries
         else:
-            serializer.save(issue_date=date.today())
+            serializer.save()
 
     def perform_update(self, serializer):
         """Update Request to change status"""
@@ -72,7 +81,10 @@ class RequestViewSet(ModelViewSet):
         # If requested status is to Issue book, update issue_date to current date
         if status is not None:
             if status == Request.Status.ISSUED:
-                serializer.save(issue_date=date.today())
+                serializer.save(issue_date=date.today(), return_date=(
+                    date.today() + timedelta(days=15)))
+            elif status == Request.Status.RETURNED:
+                serializer.save(return_date=date.today())
 
     @action(detail=True, methods=['get'])
     def reminder(self, request, pk=None):
@@ -101,8 +113,16 @@ class TicketViewSet(ModelViewSet):
     User role can only request and view
     Librarian and Admin have full access
     """
-    serializer_class = TicketSerializer
     queryset = Ticket.objects.all()
+    
+    def get_serializer_class(self):
+        """To verify user role and method and return respective realizer"""
+        role = self.request.user.role
+        if self.request.method == 'GET':
+            return ReadTicketSerializer
+        if role == User.Role.USER:
+            return UserTicketSerializer
+        return FullTicketSerializer
 
     def get_queryset(self):
         """If user role, then only show tickets by the user"""
@@ -118,7 +138,7 @@ class TicketViewSet(ModelViewSet):
         request_data = self.request.data.dict()
         # If role user, create Requested status object and send email to all Librarians
         if user.role == User.Role.USER:
-            serializer.save(status=Ticket.Status.REQUESTED)
+            serializer.save(user=user, status=Ticket.Status.REQUESTED)
             librarians = User.objects.filter(role=User.Role.LIBRARIAN).values()
             for librarian in librarians:
                 send_mail(

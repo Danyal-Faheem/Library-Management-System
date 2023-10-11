@@ -8,10 +8,9 @@ def return_reminder():
     Runs at 12am everyday to check whether any issued book is due on that day
     Sends an email reminder to user if book is due on that day
     """
-    issued_books = Request.objects.filter(status=Request.Status.ISSUED)
-    if issued_books is not None:
-        reminders = [reminder for reminder in issued_books if reminder.return_date == date.today()]
-        for reminder in reminders:
+    issued_books = Request.objects.filter(status=Request.Status.ISSUED, return_date=date.today()).values()
+    if len(issued_books) > 0:
+        for reminder in issued_books:
             send_mail(
                 "Book Return Reminder",
                 f'The book with the details:\n'

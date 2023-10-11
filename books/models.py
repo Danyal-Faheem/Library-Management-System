@@ -25,6 +25,7 @@ class Request(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
     issue_date = models.DateField(null=True)
+    return_date = models.DateField(null=True)
 
     class Status(models.TextChoices):
         """
@@ -37,11 +38,6 @@ class Request(models.Model):
         REJECTED = "rejected", "Rejected"
     status = models.CharField(choices=Status.choices,
                               max_length=9, default=Status.REQUESTED)
-
-    @property
-    def return_date(self):
-        """Auto calculates the return date which is 15 days after issue_date"""
-        return self.issue_date + timedelta(days=15)
 
     def __str__(self):
         return f'Book: {self.book}, User: {self.user}, return_date: {self.return_date}'

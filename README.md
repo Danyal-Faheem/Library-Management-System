@@ -18,7 +18,6 @@
 - Manually send email reminders to return book initiated by librarian
 - Automated email notification if new book request inititiated and on status change
 - Proper validation checks to ensure no more than 3 books are issued to user
-- Cross platform
 
 
 ## API Reference

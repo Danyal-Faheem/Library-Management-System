@@ -33,7 +33,6 @@ class UserProfileViewSet(ModelViewSet):
             queryset = queryset.filter(user=self.request.user)
         return queryset
 
-
     def create(self, request):
         """
         Create function is disabled as that has a separate route to allow

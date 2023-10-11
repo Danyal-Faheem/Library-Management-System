@@ -45,6 +45,7 @@ class ReadRequestSerializer(serializers.ModelSerializer):
         # Make all fields read_only
         read_only_fields = fields
 
+
 class UserRequestSerializer(serializers.ModelSerializer):
     """Serializer for Requests allowed to the User"""
 
@@ -71,6 +72,7 @@ class UserRequestSerializer(serializers.ModelSerializer):
         # Don't allow user to change User and Status
         read_only_fields = ['user', 'status']
 
+
 class FullTicketSerializer(serializers.ModelSerializer):
     """Serializer for Ticket Model"""
 
@@ -90,13 +92,15 @@ class FullTicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ['id', 'user', 'name', 'author', 'publisher', 'status']
-        
+
+
 class ReadTicketSerializer(serializers.ModelSerializer):
     """Serializer to only allow read access to Ticket Model"""
     class Meta:
         model = Ticket
         fields = ['id', 'user', 'name', 'author', 'publisher', 'status']
         read_only_fields = fields
+
 
 class UserTicketSerializer(serializers.ModelSerializer):
     """Serializer for Ticket Model"""
@@ -118,5 +122,3 @@ class UserTicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = ['id', 'user', 'name', 'author', 'publisher', 'status']
         read_only_fields = ['user', 'status']
-        
-    

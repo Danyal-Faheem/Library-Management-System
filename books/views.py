@@ -114,7 +114,7 @@ class TicketViewSet(ModelViewSet):
     Librarian and Admin have full access
     """
     queryset = Ticket.objects.all()
-    
+
     def get_serializer_class(self):
         """To verify user role and method and return respective realizer"""
         role = self.request.user.role

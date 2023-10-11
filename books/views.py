@@ -55,7 +55,7 @@ class RequestViewSet(ModelViewSet):
         # If role is user, only allow request queries
         if role == User.Role.USER:
             serializer.save(status=Request.Status.REQUESTED,
-                            issue_date=date.today())
+                            user=self.request.user, issue_date=date.today())
         # Otherwise, allow all queries
         else:
             serializer.save(issue_date=date.today())

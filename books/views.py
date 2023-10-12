@@ -1,7 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied
+from rest_framework import serializers
 from books.serializers import (
-    BookSerializer, FullRequestSerializer, UserRequestSerializer, ReadRequestSerializer,  ReadTicketSerializer, FullTicketSerializer, UserTicketSerializer)
+    BookCreateSerializer, BookSerializer, FullRequestSerializer, UserRequestSerializer, ReadRequestSerializer,  ReadTicketSerializer, FullTicketSerializer, UserTicketSerializer)
 from books.models import Book, Request, Ticket
 from books.permissions import IsLibrarianOrAdminOrReadOnly
 from user.models import User
@@ -18,10 +19,15 @@ class BooksViewSet(ModelViewSet):
     Librarian and Admin can make all changes but users can only view
     Also allows books to be searched using query parameters based on name
     """
-    serializer_class = BookSerializer
     queryset = Book.objects.all()
     # To make sure only Librarian and Admin can make changes
     permission_classes = [IsLibrarianOrAdminOrReadOnly]
+    
+    def get_serializer_class(self):
+        """Apply different validation checks on book create"""
+        if self.request.method == 'POST':
+            return BookCreateSerializer
+        return BookSerializer
 
     def get_queryset(self):
         """Checks if any search query parameters present and filters accordinglys"""
@@ -133,41 +139,21 @@ class TicketViewSet(ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        """Create the ticket object and send an email to all librarians"""
-        user = self.request.user
+        """Perform validation, else, Create the ticket object and send an email to all librarians"""
         request_data = self.request.data.dict()
+        if len(Book.objects.filter(name=request_data['name'], author=request_data['author'])) > 0 and request_data['status'] == Ticket.Status.REQUESTED:
+            raise serializers.ValidationError(
+                "This book already exists in the library")
+        elif len(Ticket.objects.filter(user=request_data['user'], name=request_data['name'], author=request_data['author'])) > 0 and request_data['status'] == Ticket.Status.REQUESTED:
+            raise serializers.ValidationError(
+                "You have already Requested this book!")
+        user = self.request.user
         # If role user, create Requested status object and send email to all Librarians
         if user.role == User.Role.USER:
             serializer.save(user=user, status=Ticket.Status.REQUESTED)
-            librarians = User.objects.filter(role=User.Role.LIBRARIAN).values()
-            for librarian in librarians:
-                send_mail(
-                    "New Book Request Ticket",
-                    f'Dear {librarian["username"]},\n'
-                    f'User {user.username} has requested a new book to be added\n'
-                    f'Requested Book Details:\n'
-                    f'Name: {request_data["name"]}\n'
-                    f'Author: {request_data["author"]}\n',
-                    settings.EMAIL_HOST_USER,
-                    [librarian["email"]]
-                )
         # Otherwise, save object as requested and send email to all librarians
         else:
             serializer.save()
-            # In case update request is sent using PUT
-            if ticket["status"] != Ticket.Status.REQUESTED:
-                ticket = Ticket.objects.get(
-                    user=request_data["user"], name=request_data["name"], author=request_data["author"])
-                send_mail(
-                    "New Book Request Ticket",
-                    f'Dear {ticket.user.username},\n'
-                    f'Your request to add the book: \n'
-                    f'Name: {ticket.name}\n'
-                    f'Author: {ticket.author}\n'
-                    f'Has been {ticket.status}',
-                    settings.EMAIL_HOST_USER,
-                    [ticket.user.email]
-                )
 
     def perform_update(self, serializer):
         """To update fields of Ticket model, mostly status and send subsequent mail to user"""
@@ -177,17 +163,4 @@ class TicketViewSet(ModelViewSet):
             raise PermissionDenied(
                 "You are not authorized to perform this action")
         serializer.save()
-        request_data = self.request.data.dict()
-        # Get ticket from db based on request_data and send mail to user
-        ticket = Ticket.objects.get(
-            user=request_data["user"], name=request_data["name"], author=request_data["author"])
-        send_mail(
-            "New Book Request Ticket",
-            f'Dear {ticket.user.username},\n'
-            f'Your request to add the book: \n'
-            f'Name: {ticket.name}\n'
-            f'Author: {ticket.author}\n'
-            f'Has been {ticket.status}',
-            settings.EMAIL_HOST_USER,
-            [ticket.user.email]
-        )
+

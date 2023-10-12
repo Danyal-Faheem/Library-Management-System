@@ -28,13 +28,20 @@ class Command(BaseCommand):
                 next(reader, None)
                 count = 0
                 for row in reader:
-                    book = Book.objects.create(
-                        name=row[0], author=row[1], publisher=row[2], image=row[3], count=row[4])
-                    count += 1
-                    if options['v']:
+                    # Make sure book is not already in library
+                    if len(Book.objects.filter(name=row[0], author=row[1], publisher=row[2])) < 1:
+                        book = Book.objects.create(
+                            name=row[0], author=row[1], publisher=row[2], image=row[3], count=row[4])
+                        count += 1
+                        if options['v']:
+                            self.stdout.write(
+                                self.style.SUCCESS(f'Added Book {book}'))
+                    else:
                         self.stderr.write(
-                            self.style.SUCCESS(f'Added Book {book}'))
-            self.stderr.write(self.style.SUCCESS(
+                            self.style.ERROR(
+                                f'Book with details: \nName: {row[0]}\nAuthor: {row[1]}\nPublisher: {row[2]}\nAlready exists in Library\n')
+                        )
+            self.stdout.write(self.style.SUCCESS(
                 f'Successfully added {count} books'))
         except Exception as e:
             self.stderr.write(self.style.ERROR(f'Error: {e}'))

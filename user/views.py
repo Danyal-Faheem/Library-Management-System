@@ -33,6 +33,13 @@ class UserProfileViewSet(ModelViewSet):
             queryset = queryset.filter(user=self.request.user)
         return queryset
 
+
+    def list(self, request, *args, **kwargs):
+        """Overriding list to only return single userprofile object"""
+        if request.user.role == User.Role.USER:
+            response = UserProfileSerializer(UserProfile.objects.get(user=request.user)).data
+            return Response(response, status=status.HTTP_200_OK)
+
     def create(self, request):
         """
         Create function is disabled as that has a separate route to allow

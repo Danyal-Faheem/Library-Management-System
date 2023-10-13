@@ -1,11 +1,9 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView
 from user.serializers import UserProfileSerializer
 from user.models import User, UserProfile
 from rest_framework.response import Response
 from rest_framework import status
-
+from LMS.viewset import AuthenticatedModelViewSet
 
 class UserCreateView(CreateAPIView):
     """View to create a userprofile and user together"""
@@ -13,7 +11,7 @@ class UserCreateView(CreateAPIView):
     queryset = UserProfile.objects.all()
 
 
-class UserProfileViewSet(ModelViewSet):
+class UserProfileViewSet(AuthenticatedModelViewSet):
     """
     Viewset to handle all tasks related to user profile
     Create functionality is disabled
@@ -21,8 +19,6 @@ class UserProfileViewSet(ModelViewSet):
     Admin and Librarian can manage all profiles
     """
     serializer_class = UserProfileSerializer
-    # To make sure only authenticated users can access
-    permission_classes = [IsAuthenticated]
     queryset = UserProfile.objects.all()
 
     def get_queryset(self):

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'user',
     'books',
     'rest_framework',
+    'rest_framework.authtoken',
     'debug_toolbar',
     'django_crontab',
     'django.contrib.admin',

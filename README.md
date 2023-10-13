@@ -64,7 +64,7 @@ Manage, except create, the profile of user with id
 
 Return the list of books available at the library
 ```http
-  GET /books/books/?name={name}
+  GET /books/list/?name={name}
 ```
 
 | Parameter | Type     | Description                       |
@@ -73,7 +73,7 @@ Return the list of books available at the library
 
 Manage books. Only available to Librarians.
 ```http
-  GET, PUT, POST, PATCH, DELETE /books/books/{id}
+  GET, PUT, POST, PATCH, DELETE /books/list/{id}
 ```
 
 | Parameter | Type     | Description                       |

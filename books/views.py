@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from LMS.viewset import AuthenticatedModelViewSet
 
 
 class BooksViewSet(ModelViewSet):
@@ -38,7 +39,7 @@ class BooksViewSet(ModelViewSet):
         return queryset
 
 
-class RequestViewSet(ModelViewSet):
+class RequestViewSet(AuthenticatedModelViewSet):
     """
     Viewset to handle all interactions for requests
     This includes Request, Issue, Return
@@ -67,12 +68,28 @@ class RequestViewSet(ModelViewSet):
     def perform_create(self, serializer):
         """To create the request object"""
         role = self.request.user.role
+        request_data = self.request.data.dict()
         # If role is user, only allow request queries
         if role == User.Role.USER:
+            if self.request.user.issued_books() >= 3:
+                raise serializers.ValidationError(
+                    "Max issued books at once can't be more than 3.")
+            elif request_data['book'].remaining_count() <= 0:
+                raise serializers.ValidationError(
+                    "All copies of this book are currently issued.")
+            elif len(Request.objects.filter(user=request_data['user'], book=request_data['book'], status=Request.Status.ISSUED)) > 0:
+                raise serializers.ValidationError(
+                    "Book has already been issued to this user")
             serializer.save(status=Request.Status.REQUESTED,
                             user=self.request.user)
         # Otherwise, allow all queries
         else:
+            if request_data['book'].remaining_count() <= 0:
+                raise serializers.ValidationError(
+                    "All copies of this book are currently issued.")
+            elif len(Request.objects.filter(user=request_data['user'], book=request_data['book'], status=Request.Status.ISSUED)) > 0:
+                raise serializers.ValidationError(
+                    "Book has already been issued to this user")
             serializer.save()
 
     def perform_update(self, serializer):
@@ -112,7 +129,7 @@ class RequestViewSet(ModelViewSet):
         return Response({"status": "Email Reminder has been sent"})
 
 
-class TicketViewSet(ModelViewSet):
+class TicketViewSet(AuthenticatedModelViewSet):
     """
     Viewset to handle all interactions for Ticket model
     Handles ticket request, accept, reject
@@ -140,16 +157,16 @@ class TicketViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         """Perform validation, else, Create the ticket object and send an email to all librarians"""
-        request_data = self.request.data.dict()
-        if len(Book.objects.filter(name=request_data['name'], author=request_data['author'])) > 0 and request_data['status'] == Ticket.Status.REQUESTED:
-            raise serializers.ValidationError(
-                "This book already exists in the library")
-        elif len(Ticket.objects.filter(user=request_data['user'], name=request_data['name'], author=request_data['author'])) > 0 and request_data['status'] == Ticket.Status.REQUESTED:
-            raise serializers.ValidationError(
-                "You have already Requested this book!")
         user = self.request.user
+        request_data = self.request.data.dict()
         # If role user, create Requested status object and send email to all Librarians
         if user.role == User.Role.USER:
+            if len(Book.objects.filter(name=request_data['name'], author=request_data['author'])) > 0:
+                raise serializers.ValidationError(
+                "This book already exists in the library")
+            elif len(Ticket.objects.filter(user=user, name=request_data['name'], author=request_data['author'])) > 0:
+                raise serializers.ValidationError(
+                "You have already Requested this book!")
             serializer.save(user=user, status=Ticket.Status.REQUESTED)
         # Otherwise, save object as requested and send email to all librarians
         else:

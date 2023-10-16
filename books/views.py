@@ -23,7 +23,7 @@ class BooksViewSet(ModelViewSet):
     queryset = Book.objects.all()
     # To make sure only Librarian and Admin can make changes
     permission_classes = [IsLibrarianOrAdminOrReadOnly]
-    
+
     def get_serializer_class(self):
         """Apply different validation checks on book create"""
         if self.request.method == 'POST':
@@ -163,10 +163,10 @@ class TicketViewSet(AuthenticatedModelViewSet):
         if user.role == User.Role.USER:
             if len(Book.objects.filter(name=request_data['name'], author=request_data['author'])) > 0:
                 raise serializers.ValidationError(
-                "This book already exists in the library")
+                    "This book already exists in the library")
             elif len(Ticket.objects.filter(user=user, name=request_data['name'], author=request_data['author'])) > 0:
                 raise serializers.ValidationError(
-                "You have already Requested this book!")
+                    "You have already Requested this book!")
             serializer.save(user=user, status=Ticket.Status.REQUESTED)
         # Otherwise, save object as requested and send email to all librarians
         else:
@@ -180,4 +180,3 @@ class TicketViewSet(AuthenticatedModelViewSet):
             raise PermissionDenied(
                 "You are not authorized to perform this action")
         serializer.save()
-

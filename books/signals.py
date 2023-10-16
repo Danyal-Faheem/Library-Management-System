@@ -5,6 +5,7 @@ from books.models import Ticket
 from user.models import User
 from django.conf import settings
 
+
 @receiver(post_save, sender=Ticket)
 def send_email_on_status_change(sender, instance, created, **kwargs):
     if not created:
@@ -18,7 +19,8 @@ def send_email_on_status_change(sender, instance, created, **kwargs):
             settings.EMAIL_HOST_USER,
             [instance.user.email]
         )
-        
+
+
 @receiver(post_save, sender=Ticket)
 def send_email_on_create(sender, instance, created, **kwargs):
     if created:
@@ -34,4 +36,3 @@ def send_email_on_create(sender, instance, created, **kwargs):
                 settings.EMAIL_HOST_USER,
                 [librarian["email"]]
             )
-        

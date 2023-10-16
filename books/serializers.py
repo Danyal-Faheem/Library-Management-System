@@ -8,19 +8,23 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         fields = ['id', 'name', 'image', 'author',
                   'publisher', 'count']
-        
+
+
 class BookCreateSerializer(serializers.ModelSerializer):
     """Serializer for Book Model"""
-    
+
     def validate(self, attrs):
         if len(Book.objects.filter(name=attrs['name'], author=attrs['author'], publisher=attrs['publisher'])) > 0:
-            raise serializers.ValidationError("This book already exists in the library!")
+            raise serializers.ValidationError(
+                "This book already exists in the library!")
         return super().validate(attrs)
+
     class Meta:
         model = Book
         fields = ['id', 'name', 'image', 'author',
                   'publisher', 'count', 'remaining_count']
         read_only_fields = ['remaining_count']
+
 
 class FullRequestSerializer(serializers.ModelSerializer):
     """Serializer for Request Model that allows all actions"""

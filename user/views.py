@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from LMS.viewset import AuthenticatedModelViewSet
 
+
 class UserCreateView(CreateAPIView):
     """View to create a userprofile and user together"""
     serializer_class = UserProfileSerializer
@@ -29,11 +30,11 @@ class UserProfileViewSet(AuthenticatedModelViewSet):
             queryset = queryset.filter(user=self.request.user)
         return queryset
 
-
     def list(self, request, *args, **kwargs):
         """Overriding list to only return single userprofile object"""
         if request.user.role == User.Role.USER:
-            response = UserProfileSerializer(UserProfile.objects.get(user=request.user)).data
+            response = UserProfileSerializer(
+                UserProfile.objects.get(user=request.user)).data
             return Response(response, status=status.HTTP_200_OK)
 
     def create(self, request):
